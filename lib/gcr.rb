@@ -96,7 +96,7 @@ module GCR
   # Returns nothing.
   def with_cassette(name, &blk)
     @cassette = Cassette.new(name)
-    if @cassette.exist?
+    if @cassette.exist? && ENV['GCR_RECORD'].nil?
       @cassette.play(&blk)
     else
       @cassette.record(&blk)
