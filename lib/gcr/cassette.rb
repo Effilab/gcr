@@ -175,8 +175,7 @@ class GCR::Cassette
     raise GCR::NoRecording.new(["Unrecorded request :",
       "called #{calls_count} #{(calls_count > 1) ? "times" : "time"}, (recorded #{interactions.size})",
       req.class_name,
-      req.body]
-                                 .join("\n"))
+      req.body].join("\n"))
   end
 
   def stop_playing
