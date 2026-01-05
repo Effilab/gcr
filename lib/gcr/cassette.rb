@@ -95,9 +95,14 @@ class GCR::Cassette
           stub = self
           operation.define_singleton_method(:execute) do
             # performs the operation (actual API call) and captures the response
-            resp = stub.orig_request_response(*args, return_op: false, **kwargs)
-            GCR.cassette.save_interaction(req, resp)
-            resp
+            begin
+              resp = stub.orig_request_response(*args, return_op: false, **kwargs)
+              GCR.cassette.save_interaction(req, resp)
+              resp
+            rescue => resp
+              GCR.cassette.save_interaction(req, resp)
+              raise resp
+            end
           end
 
           # then return it
