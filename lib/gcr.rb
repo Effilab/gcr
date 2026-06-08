@@ -1,4 +1,5 @@
 require "json"
+require "fileutils"
 
 module GCR
   Error = Class.new(StandardError)
@@ -78,7 +79,9 @@ module GCR
   def cassette_dir=(path)
     raise RunningError, "cannot configure GCR within #with_cassette block" if @running
 
-    FileUtils.mkdir_p(path) unless File.exist?(path)
+    if path
+      FileUtils.mkdir_p(path) unless File.exist?(path)
+    end
     @cassette_dir = path
   end
 

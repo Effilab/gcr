@@ -1,3 +1,5 @@
+require "fileutils"
+
 class GCR::Cassette
   VERSION = 2
 
@@ -161,11 +163,10 @@ class GCR::Cassette
   def read_recorded_response(req)
     interactions = reqs.select { |persisted_req, _| req == persisted_req }
     resp = interactions[calls_count(req)]&.last
-    iterate_calls_count(req)
     if resp.nil?
       raise_error(req, interactions: interactions)
     end
-
+    iterate_calls_count(req)
     resp
   end
 
