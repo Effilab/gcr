@@ -1,9 +1,14 @@
 class GCR::Request
   def self.from_proto(route, proto_req, *_)
+    body = JSON.parse(proto_req.to_json(emit_defaults: true))
+    GCR.filtered_parameters.each do |field, replacement|
+      body[field] = replacement if body.key?(field)
+    end
+
     new(
       "route"      => route,
       "class_name" => proto_req.class.name,
-      "body"       => proto_req.to_json(emit_defaults: true),
+      "body"       => JSON.dump(body),
     )
   end
 

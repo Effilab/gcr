@@ -22,6 +22,36 @@ module GCR
     @ignored_fields ||= []
   end
 
+  # Filter these fields when recording requests to cassettes, replacing their
+  # values with a placeholder string.
+  #
+  # *fields - String or Symbol field names to filter (eg. :token, :api_key).
+  #           Values will be replaced with "[FILTERED]".
+  #
+  # Returns nothing.
+  def filter_parameters(*fields)
+    filtered_parameters.merge!(
+      fields.flatten.each_with_object({}) { |f, h| h[f.to_s] = "[FILTERED]" }
+    )
+  end
+
+  # Filter these fields when recording requests to cassettes, replacing their
+  # values with custom placeholder strings.
+  #
+  # hash - A Hash mapping field names (String or Symbol) to replacement values.
+  #
+  # Returns nothing.
+  def filter_parameters_with(hash)
+    filtered_parameters.merge!(hash.transform_keys(&:to_s))
+  end
+
+  # Fields that are filtered when recording requests to cassettes.
+  #
+  # Returns a Hash mapping String field names to String replacement values.
+  def filtered_parameters
+    @filtered_parameters ||= {}
+  end
+
   # Save cassette when requests list is empty?
   #
   # Returns boolean

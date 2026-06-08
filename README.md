@@ -26,6 +26,15 @@ To not save empty requests (for instance when error occur), set `save_empty_requ
 GCR.save_empty_requests = false
 ```
 
+To filter sensitive request fields before they are written to cassette files:
+```ruby
+# Replaces values with "[FILTERED]"
+GCR.filter_parameters(:token, :api_key)
+
+# Replaces values with custom placeholders
+GCR.filter_parameters_with(token: "[TOKEN]", api_key: "[API_KEY]")
+```
+
 ## Tests
 
 To run tests:
