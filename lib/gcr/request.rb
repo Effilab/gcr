@@ -6,7 +6,7 @@ class GCR::Request
     end
 
     new(
-      "route"      => route,
+      "route" => route,
       "class_name" => proto_req.class.name,
       "body"       => JSON.dump(body),
     )
@@ -14,7 +14,7 @@ class GCR::Request
 
   def self.from_hash(hash_req)
     new(
-      "route"      => hash_req["route"],
+      "route" => hash_req["route"],
       "class_name" => hash_req["class_name"],
       "body"       => hash_req["body"],
     )
@@ -23,9 +23,9 @@ class GCR::Request
   attr_reader :route, :class_name, :body
 
   def initialize(opts)
-    @route      = opts["route"]
+    @route = opts["route"]
     @class_name = opts["class_name"]
-    @body       = opts["body"]
+    @body = opts["body"]
   end
 
   def parsed_body
@@ -34,6 +34,10 @@ class GCR::Request
 
   def to_json(*_)
     JSON.dump("route" => route, "class_name" => class_name, "body" => body)
+  end
+
+  def to_h
+    {"route" => route, "class_name" => class_name, "body" => body}
   end
 
   def to_proto

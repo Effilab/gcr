@@ -89,6 +89,18 @@ module GCR
     @cassette_dir || (raise ConfigError, "no cassette dir configured")
   end
 
+  # Specify if cassettes should be compressed to zz
+  def compress=(boolean)
+    @compress = boolean
+  end
+
+  # Whether cassettes should be compressed to zz
+  #
+  # Returns a boolean
+  def compress?
+    @compress ||= false
+  end
+
   # Specify the stub to intercept calls to.
   #
   # stub - A GRPC::ClientStub instance.
@@ -134,7 +146,7 @@ module GCR
   # Returns nothing.
   def with_cassette(name, &blk)
     @cassette = Cassette.new(name)
-    if @cassette.exist?
+    if @cassette.exist? && ENV['GCR_RECORD'].nil?
       @cassette.play(&blk)
     else
       @cassette.record(&blk)
