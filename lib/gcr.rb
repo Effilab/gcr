@@ -1,4 +1,5 @@
 require "json"
+require "fileutils"
 
 module GCR
   Error = Class.new(StandardError)
@@ -20,6 +21,36 @@ module GCR
   # Returns an Array of Strings.
   def ignored_fields
     @ignored_fields ||= []
+  end
+
+  # Filter these fields when recording requests to cassettes, replacing their
+  # values with a placeholder string.
+  #
+  # *fields - String or Symbol field names to filter (eg. :token, :api_key).
+  #           Values will be replaced with "[FILTERED]".
+  #
+  # Returns nothing.
+  def filter_parameters(*fields)
+    filtered_parameters.merge!(
+      fields.flatten.each_with_object({}) { |f, h| h[f.to_s] = "[FILTERED]" }
+    )
+  end
+
+  # Filter these fields when recording requests to cassettes, replacing their
+  # values with custom placeholder strings.
+  #
+  # hash - A Hash mapping field names (String or Symbol) to replacement values.
+  #
+  # Returns nothing.
+  def filter_parameters_with(hash)
+    filtered_parameters.merge!(hash.transform_keys(&:to_s))
+  end
+
+  # Fields that are filtered when recording requests to cassettes.
+  #
+  # Returns a Hash mapping String field names to String replacement values.
+  def filtered_parameters
+    @filtered_parameters ||= {}
   end
 
   # Save cassette when requests list is empty?
@@ -48,7 +79,9 @@ module GCR
   def cassette_dir=(path)
     raise RunningError, "cannot configure GCR within #with_cassette block" if @running
 
-    FileUtils.mkdir_p(path) unless File.exist?(path)
+    if path
+      FileUtils.mkdir_p(path) unless File.exist?(path)
+    end
     @cassette_dir = path
   end
 
@@ -57,6 +90,18 @@ module GCR
   # Returns a String path to a directory. Raises ConfigError if not configured.
   def cassette_dir
     @cassette_dir || (raise ConfigError, "no cassette dir configured")
+  end
+
+  # Specify if cassettes should be compressed to zz
+  def compress=(boolean)
+    @compress = boolean
+  end
+
+  # Whether cassettes should be compressed to zz
+  #
+  # Returns a boolean
+  def compress?
+    @compress ||= false
   end
 
   # Specify the stub to intercept calls to.
@@ -104,7 +149,7 @@ module GCR
   # Returns nothing.
   def with_cassette(name, &blk)
     @cassette = Cassette.new(name)
-    if @cassette.exist?
+    if @cassette.exist? && ENV['GCR_RECORD'].nil?
       @cassette.play(&blk)
     else
       @cassette.record(&blk)
