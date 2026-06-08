@@ -4,27 +4,27 @@ module Greetings
   class Server < Service
     ADDRESS = "127.0.0.1:5567"
 
-    def self.running?
-      !!@pid
-    end
-
     def self.start
       raise "server already running" if running?
 
-      @pid = Process.fork do
-        s = GRPC::RpcServer.new
-        s.add_http2_port(ADDRESS, :this_port_is_insecure)
-        s.handle(new)
-        s.run
-      end
+      @rpc_server = GRPC::RpcServer.new
+      @rpc_server.add_http2_port(ADDRESS, :this_port_is_insecure)
+      @rpc_server.handle(new)
+      @server_thread = Thread.new { @rpc_server.run }
+      @rpc_server.wait_till_running
     end
 
     def self.stop
       raise "server not running" unless running?
 
-      Process.kill("TERM", @pid)
-      Process.waitpid(@pid)
-      @pid = nil
+      @rpc_server.stop
+      @server_thread.join
+      @rpc_server = nil
+      @server_thread = nil
+    end
+
+    def self.running?
+      !!@server_thread&.alive?
     end
 
     def hello(req, _call)

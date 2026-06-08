@@ -7,13 +7,13 @@ require 'greetings_pb'
 module Greetings
   class Service
 
-    include GRPC::GenericService
+    include ::GRPC::GenericService
 
     self.marshal_class_method = :encode
     self.unmarshal_class_method = :decode
     self.service_name = 'Greetings'
 
-    rpc :Hello, HelloRequest, HelloResponse
+    rpc :Hello, ::HelloRequest, ::HelloResponse
   end
 
   Stub = Service.rpc_stub_class

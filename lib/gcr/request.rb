@@ -1,9 +1,6 @@
 class GCR::Request
   def self.from_proto(route, proto_req, *_)
-    body = JSON.parse(proto_req.to_json(emit_defaults: true))
-    GCR.filtered_parameters.each do |field, replacement|
-      body[field] = replacement if body.key?(field)
-    end
+    body = deep_sanitize(JSON.parse(proto_req.to_json(emit_defaults: true)))
 
     new(
       "route" => route,
@@ -11,6 +8,20 @@ class GCR::Request
       "body"       => JSON.dump(body),
     )
   end
+
+  def self.deep_sanitize(value)
+    case value
+    when Hash
+      value.each_with_object({}) do |(k, v), h|
+        h[k] = GCR.filtered_parameters.key?(k) ? GCR.filtered_parameters[k] : deep_sanitize(v)
+      end
+    when Array
+      value.map { |v| deep_sanitize(v) }
+    else
+      value
+    end
+  end
+  private_class_method :deep_sanitize
 
   def self.from_hash(hash_req)
     new(
